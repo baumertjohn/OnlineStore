@@ -5,6 +5,7 @@ import os
 
 import stripe
 from flask import Flask, redirect, render_template, url_for
+from flask_bootstrap import Bootstrap
 from flask_login import LoginManager, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
@@ -13,6 +14,7 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 
 YOUR_DOMAIN = "http://127.0.0.1:5000"
+cart_list = []
 stripe.api_key = os.environ.get("STRIPE_API")
 
 app = Flask(__name__)
@@ -20,6 +22,7 @@ app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 
 # Connect to database
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///store.db"
+Bootstrap(app)
 db = SQLAlchemy(app)
 
 # User secure login
@@ -45,11 +48,11 @@ class Item(db.Model):
 
 
 class ItemForm(FlaskForm):
-    name = StringField("Item Name", validators=[DataRequired])
-    description = StringField("Item Description", validators=[DataRequired])
-    image_path = StringField("Item ImagePath", validators=[DataRequired])
-    cost = StringField("Item Cost", validators=[DataRequired])
-    api_id = StringField("Stripe API ID", validators=[DataRequired])
+    name = StringField("Item Name", validators=[DataRequired()])
+    description = StringField("Item Description", validators=[DataRequired()])
+    image_path = StringField("Item ImagePath", validators=[DataRequired()])
+    cost = StringField("Item Cost", validators=[DataRequired()])
+    api_id = StringField("Stripe API ID", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
 
@@ -66,8 +69,13 @@ class ItemForm(FlaskForm):
 # Webpage routes
 @app.route("/")
 def home():
-    return render_template("index.html")
+    all_items = db.session.query(Item).all()
+    return render_template("index.html", item_list=all_items)
 
+
+@app.route('/add-to-cart', methods=['POST'])
+def add_to_cart():
+    pass
 
 @app.route("/create-checkout-session", methods=["POST"])
 def create_checkout_session():
@@ -108,7 +116,7 @@ def cancel():
 # ITEM PAGE
 
 # ADMIN PAGE
-@app.route("/additem")
+@app.route("/additem", methods=["GET", "POST"])
 def add_item():
     form = ItemForm()
     if form.validate_on_submit():
