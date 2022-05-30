@@ -1,0 +1,32 @@
+{% extends 'base.html' %} {% set title = 'Cart' %} {% block content %}
+
+<div style="width: 90%; margin: 0 auto">
+  {% if web_cart == [] %} 
+  <p>Your cart seems to be empty, why not look around?</p>
+  <div>
+    <a href="{{ url_for('home') }}" class="btn btn-primary">Home</a>
+  </div>
+  {% else %}
+  <ul>
+    {% for item in web_cart %}
+    <li>
+      <img src="{{ url_for('static', filename=item.image_path) }}" class="img-thumbnail" alt="..." />&emsp; {{ item.name
+      }} &emsp; {{ item.cost }}
+    </li>
+    {% endfor %}
+  </ul>
+  <div>
+    <a href="{{ url_for('clear_cart') }}" class="btn btn-primary">Clear Cart</a>
+  </div>
+  <br />
+  <div>
+    <section>
+      <form action="/create-checkout-session" method="POST">
+        <button class="btn btn-primary" type="submit" id="checkout-button">Checkout</button>
+      </form>
+    </section>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -14,7 +14,8 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 
 YOUR_DOMAIN = "http://127.0.0.1:5000"
-cart_list = []
+stripe_cart = []
+web_cart = []
 stripe.api_key = os.environ.get("STRIPE_API")
 
 app = Flask(__name__)
@@ -73,32 +74,47 @@ def home():
     return render_template("index.html", item_list=all_items)
 
 
-@app.route('/add-to-cart', methods=['POST'])
-def add_to_cart():
-    pass
+@app.route("/cart")
+def cart():
+    return render_template("cart.html", web_cart=web_cart)
+
+
+@app.route("/add-to-cart/<int:item_id>", methods=["GET", "POST"])
+def add_to_cart(item_id):
+    item_to_add = Item.query.get(item_id)
+    api_id = item_to_add.api_id
+    image_path = item_to_add.image_path
+    name = item_to_add.name
+    cost = item_to_add.cost
+    stripe_cart.append({"price": api_id, "quantity": 1})
+    web_cart.append({"image_path": image_path, "name": name, "cost": cost})
+    print(stripe_cart, web_cart)  # TESTING
+    return redirect(url_for("home"))
+
+
+@app.route("/clear-cart", methods=["GET", "POST"])
+def clear_cart():
+    global stripe_cart, web_cart
+    stripe_cart = []
+    web_cart = []
+    print(stripe_cart, web_cart)  # TESTING
+    return redirect(url_for("cart"))
+
 
 @app.route("/create-checkout-session", methods=["POST"])
 def create_checkout_session():
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            line_items=[
-                {
-                    "price": "price_1L2oJ4CTsjrSmP7yi7pO7J7W",
-                    "quantity": 1,
-                },
-                {
-                    "price": "price_1L3StoCTsjrSmP7ylLlmGPbt",
-                    "quantity": 1,
-                },
-            ],
-            mode="payment",
-            success_url=YOUR_DOMAIN + "/success",
-            cancel_url=YOUR_DOMAIN + "/cancel",
-        )
-    except Exception as e:
-        return str(e)
+    if stripe_cart != []:
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                line_items=stripe_cart,
+                mode="payment",
+                success_url=YOUR_DOMAIN + "/success",
+                cancel_url=YOUR_DOMAIN + "/cancel",
+            )
+        except Exception as e:
+            return str(e)
 
-    return redirect(checkout_session.url, code=303)
+        return redirect(checkout_session.url, code=303)
 
 
 @app.route("/success")
@@ -118,6 +134,7 @@ def cancel():
 # ADMIN PAGE
 @app.route("/additem", methods=["GET", "POST"])
 def add_item():
+    all_items = db.session.query(Item).all()
     form = ItemForm()
     if form.validate_on_submit():
         new_item = Item(
@@ -130,7 +147,7 @@ def add_item():
         db.session.add(new_item)
         db.session.commit()
         return redirect(url_for("home"))
-    return render_template("additem.html", form=form)
+    return render_template("additem.html", form=form, item_list=all_items)
 
 
 if __name__ == "__main__":
