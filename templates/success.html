@@ -1,17 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Success</title>
-  </head>
-  <body>
-    <section>
-      <p>
-        We appreciate your business! If you have any questions, please email
-        <a href="mailto:orders@example.com">orders@example.com</a>.
-      </p>
-    </section>
-  </body>
-</html>
+{% extends 'base.html' %} {% set title = 'Thank You' %} {% block content %}
+
+<div class="short_content" style="width: 80%; margin: 0 auto; text-align: center">
+  <br />
+  <h1>Thank You for Your Order</h1>
+  <p>
+    We appreciate your business! If you have any questions, please email
+    <a href="mailto:orders@example.com">orders@example.com</a>.
+  </p>
+</div>
+{% endblock %}

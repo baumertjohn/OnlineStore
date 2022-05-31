@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% set title = "Store Homepage" %} {% block content %} {% import 'bootstrap/wtf.html' as wtf
 %}
-<div style="width: 90%; margin: 0 auto">
+<div class="short_content" style="width: 60%; margin: 0 auto; text-align: center">
   <h1>Add an Item</h1>
-  <div>{{ wtf.quick_form(form, novalidate=True) }}</div>
+  <div>{{ wtf.quick_form(form, novalidate=True, button_map={'submit':'success'}) }}</div>
 </div>
 {% endblock %}

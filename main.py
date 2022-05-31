@@ -2,11 +2,19 @@
 # Online shop with payment system
 
 import os
+from functools import wraps
 
 import stripe
-from flask import Flask, redirect, render_template, url_for
+from flask import Flask, abort, redirect, render_template, request, url_for
 from flask_bootstrap import Bootstrap
-from flask_login import LoginManager, UserMixin
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+)
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -27,8 +35,8 @@ Bootstrap(app)
 db = SQLAlchemy(app)
 
 # User secure login
-# login_manager = LoginManager()
-# login_manager.init_app(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 # Table Configuration
 class User(db.Model, UserMixin):
@@ -67,16 +75,42 @@ class ItemForm(FlaskForm):
 # Create initial database
 # db.create_all()
 
+# Store user ID for secure session
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+# Define Admin
+def admin_only(function):
+    @wraps(function)
+    def decorated_function(*args, **kwargs):
+        if current_user.is_authenticated and current_user.id == 1:
+            return function(*args, **kwargs)
+        return abort(403)
+
+    return decorated_function
+
+
 # Webpage routes
 @app.route("/")
 def home():
     all_items = db.session.query(Item).all()
-    return render_template("index.html", item_list=all_items)
+    cart_count = len(web_cart)
+    return render_template("index.html", item_list=all_items, cart_count=cart_count)
+
+
+@app.route("/itemdetails/<int:item_id>")
+def item_details(item_id):
+    item = Item.query.get(item_id)
+    cart_count = len(web_cart)
+    return render_template("itemdetails.html", item=item, cart_count=cart_count)
 
 
 @app.route("/cart")
 def cart():
-    return render_template("cart.html", web_cart=web_cart)
+    cart_count = len(web_cart)
+    return render_template("cart.html", web_cart=web_cart, cart_count=cart_count)
 
 
 @app.route("/add-to-cart/<int:item_id>", methods=["GET", "POST"])
@@ -88,8 +122,7 @@ def add_to_cart(item_id):
     cost = item_to_add.cost
     stripe_cart.append({"price": api_id, "quantity": 1})
     web_cart.append({"image_path": image_path, "name": name, "cost": cost})
-    print(stripe_cart, web_cart)  # TESTING
-    return redirect(url_for("home"))
+    return redirect(url_for("cart"))
 
 
 @app.route("/clear-cart", methods=["GET", "POST"])
@@ -97,7 +130,6 @@ def clear_cart():
     global stripe_cart, web_cart
     stripe_cart = []
     web_cart = []
-    print(stripe_cart, web_cart)  # TESTING
     return redirect(url_for("cart"))
 
 
@@ -109,7 +141,7 @@ def create_checkout_session():
                 line_items=stripe_cart,
                 mode="payment",
                 success_url=YOUR_DOMAIN + "/success",
-                cancel_url=YOUR_DOMAIN + "/cancel",
+                cancel_url=YOUR_DOMAIN + "/cart",
             )
         except Exception as e:
             return str(e)
@@ -119,20 +151,60 @@ def create_checkout_session():
 
 @app.route("/success")
 def success():
+    global stripe_cart, web_cart
+    stripe_cart = []
+    web_cart = []
     return render_template("success.html")
 
 
-@app.route("/cancel")
-def cancel():
-    return render_template("cancel.html")
-
-
 # LOGIN PAGE
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        user = User.query.filter_by(email=email).first()
+        if user:
+            if check_password_hash(user.password, password):
+                login_user(user)
+                return redirect(url_for("home"))
+            else:
+                error = "Password incorrect, please try again."
+        else:
+            error = "That email does not exist, please try again."
+    return render_template("login.html", error=error)
 
-# ITEM PAGE
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    error = None
+    if request.method == "POST":
+        if User.query.filter_by(email=request.form.get("email")).first():
+            error = "That email is already register, log in instead."
+        else:
+            # Hash the user password before adding to the database
+            hash_password = generate_password_hash(
+                request.form.get("password"), method="pbkdf2:sha256", salt_length=8
+            )
+            new_user = User(email=request.form.get("email"), password=hash_password)
+            db.session.add(new_user)
+            db.session.commit()
+            login_user(new_user)
+            return redirect(url_for("home"))
+    return render_template("register.html", error=error)
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("home"))
+
 
 # ADMIN PAGE
 @app.route("/additem", methods=["GET", "POST"])
+@admin_only
 def add_item():
     all_items = db.session.query(Item).all()
     form = ItemForm()

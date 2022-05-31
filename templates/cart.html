@@ -1,30 +1,49 @@
 {% extends 'base.html' %} {% set title = 'Cart' %} {% block content %}
 
-<div style="width: 90%; margin: 0 auto">
-  {% if web_cart == [] %} 
+<div class="short_content" style="width: 80%; margin: 0 auto; text-align: center">
+  <br />
+  {% if web_cart == [] %}
   <p>Your cart seems to be empty, why not look around?</p>
   <div>
     <a href="{{ url_for('home') }}" class="btn btn-primary">Home</a>
   </div>
   {% else %}
-  <ul>
-    {% for item in web_cart %}
-    <li>
-      <img src="{{ url_for('static', filename=item.image_path) }}" class="img-thumbnail" alt="..." />&emsp; {{ item.name
-      }} &emsp; {{ item.cost }}
-    </li>
-    {% endfor %}
-  </ul>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col"></th>
+        <th scope="col">Item</th>
+        <th scope="col">Cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in web_cart %}
+      <tr>
+        <td>
+          <img src="{{ url_for('static', filename=item.image_path) }}" class="cart_thumbnail" alt="{{ item.name }}" />
+        </td>
+        <td class="align-middle">{{ item.name }}</td>
+        <td class="align-middle">{{ item.cost }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <br />
   <div>
-    <a href="{{ url_for('clear_cart') }}" class="btn btn-primary">Clear Cart</a>
+    <a href="{{ url_for('home') }}" class="btn btn-primary">Continue Shopping</a>
   </div>
   <br />
   <div>
     <section>
       <form action="/create-checkout-session" method="POST">
-        <button class="btn btn-primary" type="submit" id="checkout-button">Checkout</button>
+        <button class="btn btn-success" type="submit" id="checkout-button">Checkout</button>
       </form>
     </section>
+  </div>
+  <br />
+  <div>
+    <a href="{{ url_for('clear_cart') }}" class="btn btn-danger">Clear Cart</a>
   </div>
   {% endif %}
 </div>

@@ -1,0 +1,13 @@
+{% extends "base.html" %} {% set title = "Item Details" %} {% block content %}
+
+<div class="short_content" style="width: 80%; margin: 0 auto; text-align: center">
+  <br />
+  <img src="{{ url_for('static', filename=item.image_path) }}" />
+  <br />
+  <h1>{{ item.name }}</h1>
+  <p>{{ item.description }}</p>
+  <h3>{{ item.cost }}</h3>
+  <br />
+  <a href="{{ url_for('add_to_cart', item_id=item.id) }}" class="btn btn-primary">Add to Cart</a>
+</div>
+{% endblock %}

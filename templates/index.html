@@ -1,17 +1,20 @@
 {% extends "base.html" %} {% set title = "Store Homepage" %} {% block content %}
 
-<div class="row row-cols-1 row-cols-md-3 g-4">
-  {% for item in item_list %}
-  <div class="col">
-    <div class="card">
-      <img src="{{ url_for('static', filename=item.image_path) }}" class="card-img-top" alt="..." />
-      <div class="card-body">
-        <h5 class="card-title">{{ item.name }}</h5>
-        <p class="card-text">{{ item.description }}</p>
-        <h6>PRICE - {{ item.cost }}</h6>
-        <a href="{{ url_for('add_to_cart', item_id=item.id) }}" class="btn btn-primary">Add to Cart</a>
+<div class="short_content" style="width: 80%; margin: 0 auto; text-align: center">
+  <br />
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for item in item_list %}
+    <div class="col">
+      <div class="card">
+        <img src="{{ url_for('static', filename=item.image_path) }}" class="card-img-top" alt="..." />
+        <div class="card-body">
+          <h5 class="card-title">{{ item.name }}</h5>
+          <h6>PRICE - {{ item.cost }}</h6>
+          <a href="{{ url_for('item_details', item_id=item.id) }}" class="btn btn-secondary">Details</a>
+        </div>
       </div>
     </div>
+    {% endfor %}
   </div>
-  {% endfor %} {% endblock %}
 </div>
+{% endblock %}

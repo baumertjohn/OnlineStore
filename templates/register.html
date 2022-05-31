@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% set title = 'Register Now' %}
+{% block content %}
+
+<div class="short_content" style="width:90%; margin:0 auto; padding-top: 50px;">
+    <div style="text-align: center; padding-bottom: 25px;">
+        <h2>Register an account to save your shopping history.</h2>
+    </div>
+    <div style="margin:0 auto; text-align: center;">
+        <div>
+            {% if error %}
+            <div class="alert alert-danger">
+                {{ error }}
+            </div>
+            {% endif %}
+        </div>
+        <form action="{{ url_for('register') }}" method="post">
+            <div class="mb-3">
+                <input type="email" name="email" placeholder="Email" required="required" />
+            </div>
+            <div class="mb-3">
+                <input type="password" name="password" placeholder="Password" required="required" />
+            </div>
+            <button type="submit" class="btn btn-secondary">Register</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

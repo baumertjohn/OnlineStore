@@ -1,0 +1,17 @@
+/* Keeps footer at bottom when needed */
+.short_content {
+  min-height: calc(100vh - 265px);
+}
+
+.footer {
+  margin: 50px 0px 0px;
+  text-align: center;
+  padding: 15px;
+}
+
+.cart_thumbnail {
+  border: 1px solid #ddd; /* Gray border */
+  border-radius: 4px; /* Rounded border */
+  padding: 5px; /* Some padding */
+  width: 80px; /* Set a small width */
+}
