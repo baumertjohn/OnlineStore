@@ -19,7 +19,7 @@
       <img src="{{ url_for('static', filename='images/banner.png') }}" class="img-fluid" alt="Store Header" />
       <nav class="navbar navbar-expand-lg bg-light">
         <div class="container-fluid">
-          <a class="navbar-brand" href="{{ url_for('home') }}">Buy Some Stuff</a>
+          <!-- <a class="navbar-brand" href="{{ url_for('home') }}">Buy Some Stuff</a> -->
           <button
             class="navbar-toggler"
             type="button"
@@ -39,11 +39,6 @@
               <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('cart') }}">Cart ({{ cart_count }})</a>
               </li>
-              {% if current_user.is_authenticated and current_user.id == 1 %}
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('add_item') }}">ADD ITEM (ADMIN FUNCTION)</a>
-              </li>
-              {% endif %}
             </ul>
             <div class="d-flex">
               {% if current_user.is_authenticated %}
@@ -57,7 +52,11 @@
         </div>
       </nav>
     </div>
-    {% block content %} {% endblock %}
+    {% if current_user.is_authenticated and current_user.id == 1 %}
+    <div class="alert alert-danger" role="alert" style="width: 50%; margin: 0 auto; text-align: center">
+      <a href="{{ url_for('add_item') }}" class="alert-link">ADD ITEM (ADMIN FUNCTION)</a>
+    </div>
+    {% endif %} {% block content %} {% endblock %}
     <!-- Footer -->
     <div style="width: 80%; margin: 0 auto">
       <div class="footer bg-light style=text-align: center;">

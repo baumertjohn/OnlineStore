@@ -1,6 +1,14 @@
 # 100 Days of Code Capstone Project
 # Online shop with payment system
 
+# Admin Account - Allows adding to item database (this is independent of Stripe)
+# Email - admin@email.com
+# Password - password
+
+# Test account - An additional account for testing.
+# Email - test@email.com
+# Password - password
+
 import os
 from functools import wraps
 
@@ -65,13 +73,6 @@ class ItemForm(FlaskForm):
     submit = SubmitField("Submit")
 
 
-# ORDER HISTORY TABLE
-# ID
-# customer email
-# item
-# cost
-
-
 # Create initial database
 # db.create_all()
 
@@ -100,53 +101,17 @@ def home():
     return render_template("index.html", item_list=all_items, cart_count=cart_count)
 
 
-@app.route("/itemdetails/<int:item_id>")
-def item_details(item_id):
-    item = Item.query.get(item_id)
-    cart_count = len(web_cart)
-    return render_template("itemdetails.html", item=item, cart_count=cart_count)
-
-
 @app.route("/cart")
 def cart():
     cart_count = len(web_cart)
     return render_template("cart.html", web_cart=web_cart, cart_count=cart_count)
 
 
-@app.route("/add-to-cart/<int:item_id>", methods=["GET", "POST"])
-def add_to_cart(item_id):
-    item_to_add = Item.query.get(item_id)
-    api_id = item_to_add.api_id
-    image_path = item_to_add.image_path
-    name = item_to_add.name
-    cost = item_to_add.cost
-    stripe_cart.append({"price": api_id, "quantity": 1})
-    web_cart.append({"image_path": image_path, "name": name, "cost": cost})
-    return redirect(url_for("cart"))
-
-
-@app.route("/clear-cart", methods=["GET", "POST"])
-def clear_cart():
-    global stripe_cart, web_cart
-    stripe_cart = []
-    web_cart = []
-    return redirect(url_for("cart"))
-
-
-@app.route("/create-checkout-session", methods=["POST"])
-def create_checkout_session():
-    if stripe_cart != []:
-        try:
-            checkout_session = stripe.checkout.Session.create(
-                line_items=stripe_cart,
-                mode="payment",
-                success_url=YOUR_DOMAIN + "/success",
-                cancel_url=YOUR_DOMAIN + "/cart",
-            )
-        except Exception as e:
-            return str(e)
-
-        return redirect(checkout_session.url, code=303)
+@app.route("/itemdetails/<int:item_id>")
+def item_details(item_id):
+    item = Item.query.get(item_id)
+    cart_count = len(web_cart)
+    return render_template("itemdetails.html", item=item, cart_count=cart_count)
 
 
 @app.route("/success")
@@ -218,8 +183,44 @@ def add_item():
         )
         db.session.add(new_item)
         db.session.commit()
-        return redirect(url_for("home"))
+        return redirect(url_for("add_item"))
     return render_template("additem.html", form=form, item_list=all_items)
+
+
+# Web cart functions
+@app.route("/add-to-cart/<int:item_id>", methods=["GET", "POST"])
+def add_to_cart(item_id):
+    item_to_add = Item.query.get(item_id)
+    api_id = item_to_add.api_id
+    image_path = item_to_add.image_path
+    name = item_to_add.name
+    cost = item_to_add.cost
+    stripe_cart.append({"price": api_id, "quantity": 1})
+    web_cart.append({"image_path": image_path, "name": name, "cost": cost})
+    return redirect(url_for("cart"))
+
+
+@app.route("/clear-cart", methods=["GET", "POST"])
+def clear_cart():
+    global stripe_cart, web_cart
+    stripe_cart = []
+    web_cart = []
+    return redirect(url_for("cart"))
+
+
+@app.route("/create-checkout-session", methods=["POST"])
+def create_checkout_session():
+    if stripe_cart != []:
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                line_items=stripe_cart,
+                mode="payment",
+                success_url=YOUR_DOMAIN + "/success",
+                cancel_url=YOUR_DOMAIN + "/cart",
+            )
+        except Exception as e:
+            return str(e)
+        return redirect(checkout_session.url, code=303)
 
 
 if __name__ == "__main__":

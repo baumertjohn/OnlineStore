@@ -1,7 +1,37 @@
 {% extends "base.html" %} {% set title = "Store Homepage" %} {% block content %} {% import 'bootstrap/wtf.html' as wtf
 %}
-<div class="short_content" style="width: 60%; margin: 0 auto; text-align: center">
-  <h1>Add an Item</h1>
-  <div>{{ wtf.quick_form(form, novalidate=True, button_map={'submit':'success'}) }}</div>
+<div class="short_content" style="width: 90%; margin: 0 auto; text-align: center">
+  <div style="width: 50%; margin: 0 auto">
+    <h1>Add an Item</h1>
+    <div>{{ wtf.quick_form(form, novalidate=True, button_map={'submit':'success'}) }}</div>
+  </div>
+  <br />
+  <h3>Existing Items In Database</h3>
+  <div>
+    <table class="table-sm table-bordered" style="margin: 0 auto">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Name</th>
+          <th scope="col">Description</th>
+          <th scope="col">Image Path</th>
+          <th scope="col">Cost</th>
+          <th scope="col">API ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in item_list %}
+        <tr>
+          <th scope="row">{{ item.id }}</th>
+          <td>{{ item.name }}</td>
+          <td>{{ item.description[:25] }}...</td>
+          <td>{{ item.image_path }}</td>
+          <td>{{ item.cost }}</td>
+          <td>{{ item.api_id }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% endblock %}
